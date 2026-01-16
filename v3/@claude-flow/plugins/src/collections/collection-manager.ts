@@ -22,6 +22,7 @@ export type PluginCategory =
   | 'hook'         // Lifecycle hooks
   | 'worker'       // Background workers
   | 'integration'  // External integrations
+  | 'database'     // Database backends and integrations
   | 'utility';     // General utilities
 
 export type PluginCapability =
@@ -29,6 +30,7 @@ export type PluginCapability =
   | 'filesystem'   // Can access filesystem
   | 'subprocess'   // Can spawn processes
   | 'memory'       // Can store persistent data
+  | 'database'     // Can access databases
   | 'llm'          // Can call LLM APIs
   | 'mcp';         // Can register MCP tools
 
@@ -568,6 +570,7 @@ export class PluginCollectionManager {
       hook: 0,
       worker: 0,
       integration: 0,
+      database: 0,
       utility: 0,
     };
 
