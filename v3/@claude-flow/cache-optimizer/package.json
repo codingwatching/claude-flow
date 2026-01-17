@@ -1,0 +1,113 @@
+{
+  "name": "@claude-flow/cache-optimizer",
+  "version": "3.0.0-alpha.1",
+  "description": "Intelligent Cache Optimization System (ICOS) - Zero-compaction context management with RuVector temporal compression, attention-based relevance scoring, and self-learning (ADR-030)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./temporal": {
+      "types": "./dist/temporal/index.d.ts",
+      "import": "./dist/temporal/index.js"
+    },
+    "./intelligence": {
+      "types": "./dist/intelligence/index.d.ts",
+      "import": "./dist/intelligence/index.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.js"
+    },
+    "./benchmarks": {
+      "types": "./dist/benchmarks/index.d.ts",
+      "import": "./dist/benchmarks/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@claude-flow/memory": "^3.0.0-alpha.2",
+    "@claude-flow/neural": "^3.0.0-alpha.2",
+    "@claude-flow/hooks": "^3.0.0-alpha.2",
+    "@claude-flow/shared": "^3.0.0-alpha.1",
+    "@claude-flow/attention": "^3.0.0-alpha.1",
+    "zod": "^3.23.0"
+  },
+  "optionalDependencies": {
+    "gpt-tokenizer": "^2.1.0",
+    "tiktoken": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.0",
+    "vitest": "^4.0.16"
+  },
+  "peerDependencies": {
+    "@claude-flow/shared": "^3.0.0-alpha.1"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "claude-flow",
+    "cache-optimizer",
+    "context-management",
+    "temporal-compression",
+    "ruvector",
+    "attention",
+    "sona",
+    "moe",
+    "hnsw",
+    "compaction-prevention"
+  ],
+  "author": "Claude Flow Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ruvnet/claude-flow.git",
+    "directory": "v3/@claude-flow/cache-optimizer"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "v3alpha"
+  },
+  "claude-flow": {
+    "module": "cache-optimizer",
+    "adr": "ADR-030",
+    "features": {
+      "temporalCompression": {
+        "enabled": true,
+        "tiers": ["hot", "warm", "cold", "archived"]
+      },
+      "intelligence": {
+        "attention": "flash",
+        "sona": true,
+        "moe": true
+      },
+      "targets": {
+        "zeroCompaction": true,
+        "maxUtilization": 0.75
+      }
+    }
+  }
+}
