@@ -573,6 +573,8 @@ export class WorkerDaemon extends EventEmitter {
         return this.runBenchmarkWorkerLocal();
       case 'preload':
         return this.runPreloadWorkerLocal();
+      case 'attention':
+        return this.runAttentionWorkerLocal();
       default:
         return { status: 'unknown worker type', mode: 'local' };
     }
