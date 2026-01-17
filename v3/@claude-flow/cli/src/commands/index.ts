@@ -46,6 +46,7 @@ const commandLoaders: Record<string, CommandLoader> = {
   deployment: () => import('./deployment.js'),
   claims: () => import('./claims.js'),
   embeddings: () => import('./embeddings.js'),
+  attention: () => import('./attention.js'),
   // P0 Commands
   completions: () => import('./completions.js'),
   doctor: () => import('./doctor.js'),
