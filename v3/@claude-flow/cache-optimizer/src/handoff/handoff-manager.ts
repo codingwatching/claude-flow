@@ -239,13 +239,16 @@ export class HandoffManager {
     const messages = this.buildMessages(request);
 
     try {
+      const referer = (config.options?.referer as string | undefined) ?? 'https://github.com/ruvnet/claude-flow';
+      const title = (config.options?.title as string | undefined) ?? 'Claude Flow';
+
       const response = await fetch(config.endpoint || 'https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': config.options?.referer || 'https://github.com/ruvnet/claude-flow',
-          'X-Title': config.options?.title || 'Claude Flow',
+          'HTTP-Referer': referer,
+          'X-Title': title,
         },
         body: JSON.stringify({
           model: config.model || 'anthropic/claude-3.5-sonnet',
