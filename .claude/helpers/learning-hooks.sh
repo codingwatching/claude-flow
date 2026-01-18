@@ -77,6 +77,7 @@ session_start() {
     echo "$session_id" > "$LEARNING_DIR/current-session-id"
 
     # Update metrics
+    local status_date=$(get_iso_date)
     cat > "$METRICS_DIR/learning-status.json" << EOF
 {
   "sessionId": "$session_id",
@@ -84,7 +85,7 @@ session_start() {
   "shortTermPatterns": ${short_term:-0},
   "longTermPatterns": ${long_term:-0},
   "hnswEnabled": true,
-  "timestamp": "$(date -Iseconds)"
+  "timestamp": "$status_date"
 }
 EOF
 
