@@ -33,6 +33,10 @@
     "./benchmarks": {
       "types": "./dist/benchmarks/index.d.ts",
       "import": "./dist/benchmarks/index.js"
+    },
+    "./init": {
+      "types": "./dist/init/index.d.ts",
+      "import": "./dist/init/index.js"
     }
   },
   "files": [
