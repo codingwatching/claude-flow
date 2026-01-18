@@ -834,15 +834,39 @@ export class CacheOptimizer {
 
   /**
    * Delete entry by ID
+   * Uses mutex to prevent race conditions in multi-agent scenarios
    */
   async delete(id: string): Promise<boolean> {
-    const entry = this.entries.get(id);
-    if (!entry) return false;
+    const release = await this.mutex.acquire();
+    try {
+      // Check in default entries
+      let entry = this.entries.get(id);
+      if (entry) {
+        this.tokenCounter.removeEntry(entry);
+        this.entries.delete(id);
+        this.removeFromAccessOrder(id);
+        return true;
+      }
 
-    this.tokenCounter.removeEntry(entry);
-    this.entries.delete(id);
-    this.removeFromAccessOrder(id);
-    return true;
+      // Check in session storages
+      if (this.sessionIsolation) {
+        for (const storage of this.sessions.values()) {
+          entry = storage.entries.get(id);
+          if (entry) {
+            this.tokenCounter.removeEntry(entry);
+            storage.tokenCounter.removeEntry(entry);
+            storage.entries.delete(id);
+            const idx = storage.accessOrder.indexOf(id);
+            if (idx > -1) storage.accessOrder.splice(idx, 1);
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } finally {
+      release();
+    }
   }
 
   /**
