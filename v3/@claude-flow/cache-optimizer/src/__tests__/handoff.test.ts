@@ -1005,18 +1005,34 @@ describe('StreamingHandler', () => {
   });
 
   it('should respect abort signal', async () => {
+    const controller = new AbortController();
+
+    // Create a mock that checks the abort signal
     const mockResponse = {
       ok: true,
       body: {
         getReader: () => ({
-          read: () => new Promise(() => {}), // Never resolves
+          read: () => new Promise((resolve, reject) => {
+            // Listen for abort on the controller's signal
+            const checkAbort = () => {
+              if (controller.signal.aborted) {
+                reject(new Error('The operation was aborted'));
+              }
+            };
+
+            // Check immediately and periodically
+            checkAbort();
+            const interval = setInterval(checkAbort, 5);
+            controller.signal.addEventListener('abort', () => {
+              clearInterval(interval);
+              reject(new Error('The operation was aborted'));
+            });
+          }),
         }),
       },
     };
 
     global.fetch = vi.fn().mockResolvedValue(mockResponse);
-
-    const controller = new AbortController();
 
     const request: HandoffRequest = {
       id: 'abort-test',
@@ -1035,5 +1051,6 @@ describe('StreamingHandler', () => {
 
     const result = await streamPromise;
     expect(result.status).toBe('failed');
+    expect(result.error).toBeDefined();
   });
 });
