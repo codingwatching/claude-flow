@@ -1972,6 +1972,10 @@ Real-world scenarios and pre-built workflows for common tasks.
 
 ---
 
+## 🧠 Intelligence & Learning
+
+Self-learning hooks, pattern recognition, and intelligent task routing.
+
 <details>
 <summary>🪝 <strong>Hooks, Event Hooks, Workers & Pattern Intelligence</strong></summary>
 
