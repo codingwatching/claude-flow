@@ -5784,7 +5784,7 @@ export CLAUDE_FLOW_HNSW_EF=100
 ---
 
 <details>
-<summary><h2>🔄 Migration Guide (V2 → V3) </h2></summary>
+<summary>🔄 <strong>Migration Guide (V2 → V3)</strong></summary>
 
 ### Why Migrate to V3?
 
