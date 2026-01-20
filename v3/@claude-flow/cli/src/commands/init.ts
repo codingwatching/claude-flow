@@ -824,6 +824,8 @@ export const initCommand: Command = {
     { command: 'claude-flow init --with-embeddings --embedding-model all-mpnet-base-v2', description: 'Use larger embedding model' },
     { command: 'claude-flow init skills --all', description: 'Install all available skills' },
     { command: 'claude-flow init hooks --minimal', description: 'Create minimal hooks configuration' },
+    { command: 'claude-flow init upgrade', description: 'Update helpers while preserving data' },
+    { command: 'claude-flow init upgrade --verbose', description: 'Show detailed upgrade info' },
   ],
   action: initAction,
 };
