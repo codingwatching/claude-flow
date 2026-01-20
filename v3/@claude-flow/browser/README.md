@@ -128,7 +128,7 @@ Available MCP tools:
 ---
 
 <details>
-<summary><h2>🎯 Core Concepts</h2></summary>
+<summary><strong>🎯 Core Concepts</strong></summary>
 
 ### Element Refs (`@e1`, `@e2`, etc.)
 
