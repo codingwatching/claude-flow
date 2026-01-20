@@ -272,17 +272,45 @@ function getSecurityStatus() {
   };
 }
 
-// Get swarm status
+// Get swarm status (cross-platform)
 function getSwarmStatus() {
   let activeAgents = 0;
   let coordinationActive = false;
 
+  // Check swarm-activity.json first (works on all platforms)
+  const activityPath = path.join(process.cwd(), '.claude-flow', 'metrics', 'swarm-activity.json');
+  if (fs.existsSync(activityPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(activityPath, 'utf-8'));
+      if (data.swarm) {
+        return {
+          activeAgents: data.swarm.agent_count || 0,
+          maxAgents: CONFIG.maxAgents,
+          coordinationActive: data.swarm.coordination_active || false,
+        };
+      }
+    } catch (e) {
+      // Fall through to process detection
+    }
+  }
+
+  // Platform-specific process detection
+  const isWindows = process.platform === 'win32';
   try {
-    const ps = execSync('ps aux 2>/dev/null | grep -c agentic-flow || echo "0"', { encoding: 'utf-8' });
-    activeAgents = Math.max(0, parseInt(ps.trim()) - 1);
-    coordinationActive = activeAgents > 0;
+    if (isWindows) {
+      // Windows: use tasklist
+      const ps = execSync('tasklist /FI "IMAGENAME eq node.exe" /NH 2>nul || echo ""', { encoding: 'utf-8' });
+      const nodeProcesses = (ps.match(/node\\.exe/gi) || []).length;
+      activeAgents = Math.max(0, Math.floor(nodeProcesses / 3)); // Heuristic
+      coordinationActive = nodeProcesses > 0;
+    } else {
+      // Unix: use ps
+      const ps = execSync('ps aux 2>/dev/null | grep -c agentic-flow || echo "0"', { encoding: 'utf-8' });
+      activeAgents = Math.max(0, parseInt(ps.trim()) - 1);
+      coordinationActive = activeAgents > 0;
+    }
   } catch (e) {
-    // Ignore errors
+    // Ignore errors - return defaults
   }
 
   return {
