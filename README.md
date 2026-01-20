@@ -5033,7 +5033,7 @@ npx claude-flow@v3alpha performance benchmark --suite memory
 ---
 
 <details>
-<summary><h2>🧪 Testing Framework — @claude-flow/testing</h2></summary>
+<summary>🧪 <strong>Testing Framework</strong> — @claude-flow/testing</summary>
 
 Comprehensive TDD framework implementing **London School** patterns with behavior verification, shared fixtures, and mock services.
 
