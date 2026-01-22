@@ -1582,9 +1582,9 @@ const postTaskCommand: Command = {
     {
       name: 'success',
       short: 's',
-      description: 'Whether the task succeeded',
+      description: 'Whether the task succeeded (defaults to true)',
       type: 'boolean',
-      required: true
+      default: true
     },
     {
       name: 'quality',
