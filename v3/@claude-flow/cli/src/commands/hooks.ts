@@ -230,7 +230,7 @@ const postEditCommand: Command = {
         };
       }>('hooks/post-edit', {
         filePath,
-        success,
+        success: successValue,
         outcome: ctx.flags.outcome,
         metrics,
         timestamp: Date.now(),
