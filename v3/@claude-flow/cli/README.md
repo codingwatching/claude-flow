@@ -2344,24 +2344,34 @@ npx claude-flow@v3alpha transfer-store publish --input ./my-patterns.json --cate
 
 ### Plugin Store
 
-Discover and install community plugins.
+Discover and install plugins from the decentralized registry.
 
 | Command | Description |
 |---------|-------------|
-| `transfer plugin-search` | Search plugins by type or category |
-| `transfer plugin-info` | Get plugin details and dependencies |
-| `transfer plugin-featured` | Browse featured plugins |
-| `transfer plugin-official` | List official/verified plugins |
+| `plugins list` | List all available plugins with ratings and downloads |
+| `plugins search --query "..."` | Search plugins by keyword |
+| `plugins info --name "..."` | Get detailed plugin information |
+| `plugins install --name "..."` | Install a plugin from the registry |
+| `plugins uninstall --name "..."` | Uninstall an installed plugin |
 
 ```bash
-# Search for MCP tool plugins
-npx claude-flow@v3alpha transfer plugin-search --type "mcp-tool" --verified
+# List all plugins (11+ available)
+npx claude-flow@v3alpha plugins list
 
-# Get plugin info
-npx claude-flow@v3alpha transfer plugin-info --name "semantic-code-search"
+# Search for testing plugins
+npx claude-flow@v3alpha plugins search --query "testing"
 
-# List official plugins
-npx claude-flow@v3alpha transfer plugin-official
+# Install quality engineering plugin (58 AI agents)
+npx claude-flow@v3alpha plugins install --name @claude-flow/plugin-agentic-qe
+
+# Install mathematical coherence plugin
+npx claude-flow@v3alpha plugins install --name @claude-flow/plugin-prime-radiant
+
+# Get plugin details
+npx claude-flow@v3alpha plugins info --name @claude-flow/plugin-agentic-qe
+
+# Uninstall a plugin
+npx claude-flow@v3alpha plugins uninstall --name @claude-flow/plugin-agentic-qe
 ```
 
 ### IPFS Integration
