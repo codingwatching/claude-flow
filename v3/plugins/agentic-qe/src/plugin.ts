@@ -697,7 +697,7 @@ export class AQEPlugin implements IPlugin {
 
     this.context = context;
     const configData = context.getConfig?.() ?? context.config ?? {};
-    this.config = parseWithDefaults(PluginConfigSchema, configData);
+    this.config = parseWithDefaults(PluginConfigSchema, configData) as AQEPluginConfig;
 
     // Initialize context mapper
     this.contextMapper = new ContextMapper();
