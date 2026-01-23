@@ -692,7 +692,7 @@ export class AQEPlugin implements IPlugin {
 
     // Cleanup temporary memory data
     try {
-      const memoryService = this.context?.getMemoryService();
+      const memoryService = this.context?.getMemoryService?.();
       if (memoryService) {
         // Only clear temporary namespaces
         const tempNamespaces = ['aqe/v3/coverage-data'];
