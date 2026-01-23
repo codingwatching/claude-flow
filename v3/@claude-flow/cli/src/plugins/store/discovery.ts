@@ -149,7 +149,7 @@ export class PluginDiscoveryService {
       // Fetch registry from IPFS
       const registryData = await fetchFromIPFS<PluginRegistry>(cid, registry.gateway);
       if (!registryData) {
-        return this.createDemoRegistry(registry);
+        return this.createDemoRegistryAsync(registry);
       }
 
       // Verify registry signature if required
