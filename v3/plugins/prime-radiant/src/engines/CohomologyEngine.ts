@@ -119,7 +119,10 @@ export class CohomologyEngine implements ICohomologyEngine {
       // Pure JS fallback - pairwise similarity check
       for (let i = 0; i < vectors.length; i++) {
         for (let j = i + 1; j < vectors.length; j++) {
-          const similarity = this.cosineSimilarity(vectors[i], vectors[j]);
+          const vecI = vectors[i];
+          const vecJ = vectors[j];
+          if (!vecI || !vecJ) continue;
+          const similarity = this.cosineSimilarity(vecI, vecJ);
 
           // Highly dissimilar vectors (negative similarity) indicate contradiction
           if (similarity < -0.5) {
