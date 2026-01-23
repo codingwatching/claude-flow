@@ -18,7 +18,7 @@ import type {
   Filtration,
   TopologyResult,
   WasmModule
-} from '../types';
+} from '../types.js';
 
 /**
  * QuantumEngine - WASM wrapper for quantum topology operations
