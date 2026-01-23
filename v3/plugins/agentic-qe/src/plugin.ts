@@ -818,14 +818,16 @@ export class AQEPlugin implements IPlugin {
   }
 
   private async initializeMemoryNamespaces(): Promise<void> {
-    const memoryService = this.context?.getMemoryService();
-    if (!memoryService) {
-      throw new Error('Memory service not available');
+    const memoryService = this.context?.getMemoryService?.();
+    if (!memoryService?.createNamespace) {
+      // Memory service not available or doesn't support namespace creation
+      return;
     }
 
     const namespaces = getMemoryNamespaces();
     for (const ns of namespaces) {
-      await memoryService.createNamespace(ns.name, {
+      await memoryService.createNamespace({
+        name: ns.name,
         vectorDimension: ns.vectorDimension,
         hnswConfig: ns.hnswConfig,
         schema: ns.schema as Record<string, unknown>,
