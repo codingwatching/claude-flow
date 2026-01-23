@@ -182,32 +182,29 @@ interface IContextMapper {
  * Security sandbox interface
  */
 interface ISecuritySandbox {
-  execute<T>(fn: () => Promise<T>, options: SandboxExecutionOptions): Promise<SandboxResult<T>>;
+  execute<T>(fn: () => Promise<T>, options?: SandboxExecutionOptions): Promise<T>;
   validatePath(path: string): boolean;
   getResourceUsage(): ResourceUsage;
 }
 
 interface SandboxExecutionOptions {
-  timeout: number;
-  maxMemory: number;
-  allowNetwork: boolean;
-  allowFileSystem: boolean;
+  timeout?: number;
+  maxMemory?: number;
+  allowNetwork?: boolean;
+  allowFileSystem?: boolean;
+  allowFileWrite?: boolean;
   workingDirectory?: string;
-}
-
-interface SandboxResult<T> {
-  success: boolean;
-  result?: T;
-  error?: string;
-  resourceUsage: ResourceUsage;
-  durationMs: number;
+  securityLevel?: SecurityLevel;
 }
 
 interface ResourceUsage {
-  memoryBytes: number;
-  cpuMs: number;
-  networkRequests: number;
-  fileOperations: number;
+  memoryBytes?: number;
+  memoryUsed?: number;
+  cpuMs?: number;
+  cpuTime?: number;
+  networkRequests?: number;
+  fileOperations?: number;
+  activeOperations?: number;
 }
 
 // =============================================================================
