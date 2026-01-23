@@ -89,7 +89,7 @@ export type {
   // Configuration types
   PrimeRadiantConfig,
   PrimeRadiantErrorCode,
-} from './types';
+} from './types.js';
 
 // WASM bridge types from wasm-bridge types file
 export type {
@@ -111,7 +111,7 @@ export type {
   Path,
   TypedValue,
   HottResult,
-} from './types';
+} from './types.js';
 
 export { DEFAULT_CONFIG, PrimeRadiantErrorCodes } from './types.js';
 
@@ -236,7 +236,7 @@ export type {
 // ============================================================================
 
 import { PrimeRadiantPlugin } from './plugin';
-import type { PrimeRadiantConfig } from './types';
+import type { PrimeRadiantConfig } from './types.js';
 
 /**
  * Create a new Prime Radiant plugin instance
