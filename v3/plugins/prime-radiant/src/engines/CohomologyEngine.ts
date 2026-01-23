@@ -255,7 +255,7 @@ export class CohomologyEngine implements ICohomologyEngine {
   private vectorDifference(a: Float32Array, b: Float32Array): Float32Array {
     const result = new Float32Array(a.length);
     for (let i = 0; i < a.length; i++) {
-      result[i] = a[i] - b[i];
+      result[i] = (a[i] ?? 0) - (b[i] ?? 0);
     }
     return result;
   }
