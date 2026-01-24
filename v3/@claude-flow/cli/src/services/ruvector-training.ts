@@ -86,12 +86,20 @@ export async function initializeTraining(config: TrainingConfig = {}): Promise<{
   const alpha = config.alpha || 0.1;
 
   try {
-    // Initialize MicroLoRA
+    // Initialize MicroLoRA with direct WASM loading (Node.js compatible)
+    const fs = await import('fs');
+    const { createRequire } = await import('module');
+    const require = createRequire(import.meta.url);
+
+    // Load WASM file directly instead of using fetch
+    const wasmPath = require.resolve('@ruvector/learning-wasm/ruvector_learning_wasm_bg.wasm');
+    const wasmBuffer = fs.readFileSync(wasmPath);
+
     const learningWasm = await import('@ruvector/learning-wasm');
-    await learningWasm.default();
+    learningWasm.initSync({ module: wasmBuffer });
 
     microLoRA = new learningWasm.WasmMicroLoRA(dim, alpha, lr);
-    features.push('MicroLoRA');
+    features.push(`MicroLoRA (${dim}-dim, <1μs adaptation)`);
 
     // Initialize ScopedLoRA for per-operator learning
     scopedLoRA = new learningWasm.WasmScopedLoRA(dim, alpha, lr);
