@@ -330,12 +330,13 @@ export function clearPerformanceLog(): void {
 }
 
 // ============================================================================
-// WASM Module Loaders
+// WASM Module Loaders - Using LazyWasm for deferred loading
 // ============================================================================
 
 /**
  * Lazy-load the gastown-formula-wasm module.
- * Caches the module for subsequent calls.
+ * Uses LazyWasm for true lazy loading - only loads when first accessed.
+ * Includes idle timeout for automatic memory cleanup.
  *
  * @returns The loaded WASM module exports, or null if unavailable
  *
@@ -348,25 +349,12 @@ export function clearPerformanceLog(): void {
  * ```
  */
 export async function loadFormulaWasm(): Promise<FormulaWasmExports | null> {
-  if (formulaWasmModule !== null) {
-    return formulaWasmModule;
-  }
-
   if (!isWasmAvailable()) {
     return null;
   }
 
   try {
-    // Dynamic import of WASM module - use unknown intermediate cast
-    const module = await import('gastown-formula-wasm') as unknown as FormulaWasmExports;
-
-    // Initialize if needed
-    if (typeof module.default === 'function') {
-      await module.default();
-    }
-
-    formulaWasmModule = module;
-    return module;
+    return await lazyFormulaWasm.get();
   } catch (error) {
     // Module not available, will use JS fallback
     console.debug('[WASM Loader] gastown-formula-wasm not available:', error);
@@ -376,7 +364,8 @@ export async function loadFormulaWasm(): Promise<FormulaWasmExports | null> {
 
 /**
  * Lazy-load the ruvector-gnn-wasm module.
- * Caches the module for subsequent calls.
+ * Uses LazyWasm for true lazy loading - only loads when first accessed.
+ * Includes idle timeout for automatic memory cleanup.
  *
  * @returns The loaded WASM module exports, or null if unavailable
  *
@@ -389,30 +378,46 @@ export async function loadFormulaWasm(): Promise<FormulaWasmExports | null> {
  * ```
  */
 export async function loadGnnWasm(): Promise<GnnWasmExports | null> {
-  if (gnnWasmModule !== null) {
-    return gnnWasmModule;
-  }
-
   if (!isWasmAvailable()) {
     return null;
   }
 
   try {
-    // Dynamic import of WASM module - use unknown intermediate cast
-    const module = await import('ruvector-gnn-wasm') as unknown as GnnWasmExports;
-
-    // Initialize if needed
-    if (typeof module.default === 'function') {
-      await module.default();
-    }
-
-    gnnWasmModule = module;
-    return module;
+    return await lazyGnnWasm.get();
   } catch (error) {
     // Module not available, will use JS fallback
     console.debug('[WASM Loader] ruvector-gnn-wasm not available:', error);
     return null;
   }
+}
+
+/**
+ * Check if formula WASM module is currently loaded.
+ * Does not trigger loading.
+ */
+export function isFormulaWasmLoaded(): boolean {
+  return lazyFormulaWasm.isLoaded();
+}
+
+/**
+ * Check if GNN WASM module is currently loaded.
+ * Does not trigger loading.
+ */
+export function isGnnWasmLoaded(): boolean {
+  return lazyGnnWasm.isLoaded();
+}
+
+/**
+ * Get lazy loading statistics for WASM modules.
+ */
+export function getWasmLazyStats(): {
+  formulaWasm: LazyStats;
+  gnnWasm: LazyStats;
+} {
+  return {
+    formulaWasm: lazyFormulaWasm.getStats(),
+    gnnWasm: lazyGnnWasm.getStats(),
+  };
 }
 
 // ============================================================================
