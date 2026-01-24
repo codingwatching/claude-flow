@@ -1517,11 +1517,17 @@ export class GasTownBridgePlugin extends EventEmitter implements IPlugin {
       async initialize() {
         if (loader) await loader.initialize();
       },
-      async resolveDependencies(beads: Array<{ id: string; dependencies?: string[] }>, action: 'topo_sort' | 'cycle_detect' | 'critical_path') {
+      async resolveDependencies(beads, action) {
         if (!loader) throw new GasTownError('WASM not initialized', GasTownErrorCode.NOT_INITIALIZED);
 
-        // Convert beads to step format for WasmLoaderAdapter (sync)
-        const steps = beads.map(b => ({ id: b.id, needs: b.dependencies ?? [] }));
+        // Convert beads to Step format for WasmLoaderAdapter (sync)
+        // Add placeholder title and description to satisfy Step interface
+        const steps: Step[] = beads.map(b => ({
+          id: b.id,
+          title: b.id,
+          description: '',
+          needs: b.dependencies ?? [],
+        }));
 
         if (action === 'topo_sort') {
           // Use the sync resolveStepDependencies from WasmLoaderAdapter
