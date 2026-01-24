@@ -1,5 +1,9 @@
 # @claude-flow/plugin-healthcare-clinical
 
+[![npm version](https://img.shields.io/npm/v/@claude-flow/plugin-healthcare-clinical.svg)](https://www.npmjs.com/package/@claude-flow/plugin-healthcare-clinical)
+[![npm downloads](https://img.shields.io/npm/dm/@claude-flow/plugin-healthcare-clinical.svg)](https://www.npmjs.com/package/@claude-flow/plugin-healthcare-clinical)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A HIPAA-compliant clinical decision support plugin that combines ultra-fast vector search for medical literature retrieval with graph neural networks for patient pathway analysis. The plugin enables semantic search across medical records, drug interaction detection, and evidence-based treatment recommendations while maintaining strict data privacy through on-device WASM processing.
 
 ## Features
