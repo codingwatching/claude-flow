@@ -271,7 +271,7 @@ describe('hyperbolic_semantic_search handler', () => {
     const result = await tool.handler(input);
     const parsed = JSON.parse(result.content[0].text!);
 
-    expect(parsed.results.length).toBeLessThanOrEqual(2);
+    expect(parsed.items.length).toBeLessThanOrEqual(2);
   });
 
   it('should return distance metrics', async () => {
@@ -284,7 +284,7 @@ describe('hyperbolic_semantic_search handler', () => {
     const result = await tool.handler(input);
     const parsed = JSON.parse(result.content[0].text!);
 
-    for (const item of parsed.results) {
+    for (const item of parsed.items) {
       expect(item).toHaveProperty('id');
       expect(item).toHaveProperty('distance');
       expect(typeof item.distance).toBe('number');
