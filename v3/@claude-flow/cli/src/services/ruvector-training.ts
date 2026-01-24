@@ -701,6 +701,13 @@ export function cleanup(): void {
     trajectoryBuffer = null;
   }
 
+  // Cleanup SONA
+  if (sonaEngine) {
+    sonaEngine.flush();
+    sonaEngine = null;
+    sonaAvailable = false;
+  }
+
   flashAttention = null;
   moeAttention = null;
   hyperbolicAttention = null;
@@ -712,5 +719,7 @@ export function cleanup(): void {
   initialized = false;
   totalAdaptations = 0;
   totalForwards = 0;
+  totalSonaLearns = 0;
+  totalSonaSearches = 0;
   lastBenchmark = null;
 }
