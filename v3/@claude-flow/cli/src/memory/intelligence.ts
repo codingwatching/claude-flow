@@ -647,10 +647,14 @@ export async function recordTrajectory(
 /**
  * Find similar patterns from ReasoningBank
  */
+export interface PatternMatch extends Pattern {
+  similarity: number;
+}
+
 export async function findSimilarPatterns(
   query: string,
   options?: { k?: number; threshold?: number; type?: string }
-): Promise<Pattern[]> {
+): Promise<PatternMatch[]> {
   if (!reasoningBank) {
     const init = await initializeIntelligence();
     if (!init.success) return [];
@@ -674,7 +678,8 @@ export async function findSimilarPatterns(
       confidence: r.confidence,
       usageCount: r.usageCount,
       createdAt: r.createdAt,
-      lastUsedAt: r.lastUsedAt
+      lastUsedAt: r.lastUsedAt,
+      similarity: r.similarity ?? r.confidence ?? 0.5
     }));
   } catch {
     return [];
