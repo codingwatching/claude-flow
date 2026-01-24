@@ -147,9 +147,14 @@ export async function initializeTraining(config: TrainingConfig = {}): Promise<{
       features.push('Curriculum Learning');
     }
 
-    // Hard negative mining
-    hardMiner = new attention.HardNegativeMiner(5, attention.MiningStrategy.SemiHard);
-    features.push('Hard Negative Mining');
+    // Hard negative mining - use string for MiningStrategy enum due to NAPI binding quirk
+    try {
+      // @ts-expect-error - MiningStrategy enum binding expects string not enum value
+      hardMiner = new attention.HardNegativeMiner(5, 'semi_hard');
+      features.push('Hard Negative Mining');
+    } catch {
+      // Mining not available, continue without it
+    }
 
     initialized = true;
     return { success: true, features };
