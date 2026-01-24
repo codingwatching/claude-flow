@@ -236,6 +236,138 @@ Learn code patterns from repository history.
 | Module splitting | <30s for 50K LOC | ~2hr (architect review) | 240x |
 | Pattern learning | <2min for 1000 commits | N/A (not possible) | Novel |
 
+## Security Considerations
+
+### Input Validation (CRITICAL)
+
+All MCP tool inputs MUST be validated using Zod schemas:
+
+```typescript
+// code/semantic-search input validation
+const SemanticSearchSchema = z.object({
+  query: z.string().min(1).max(5000),
+  scope: z.object({
+    paths: z.array(z.string().max(500)).max(100).optional(),
+    languages: z.array(z.string().max(50)).max(20).optional(),
+    excludeTests: z.boolean().default(false)
+  }).optional(),
+  searchType: z.enum(['semantic', 'structural', 'clone', 'api_usage']).default('semantic'),
+  topK: z.number().int().min(1).max(1000).default(10)
+});
+
+// code/architecture-analyze input validation
+const ArchitectureAnalyzeSchema = z.object({
+  rootPath: z.string().max(500).default('.'),
+  analysis: z.array(z.enum([
+    'dependency_graph', 'layer_violations', 'circular_deps',
+    'component_coupling', 'module_cohesion', 'dead_code',
+    'api_surface', 'architectural_drift'
+  ])).optional(),
+  baseline: z.string().max(100).optional(),
+  outputFormat: z.enum(['json', 'graphviz', 'mermaid']).optional()
+});
+
+// code/refactor-impact input validation
+const RefactorImpactSchema = z.object({
+  changes: z.array(z.object({
+    file: z.string().max(500),
+    type: z.enum(['rename', 'move', 'delete', 'extract', 'inline']),
+    details: z.record(z.string(), z.unknown()).optional()
+  })).min(1).max(100),
+  depth: z.number().int().min(1).max(10).default(3),
+  includeTests: z.boolean().default(true)
+});
+```
+
+### Path Traversal Prevention (HIGH)
+
+```typescript
+// CRITICAL: Validate all file paths to prevent directory traversal
+function validateCodePath(userPath: string, allowedRoot: string): string {
+  // Normalize and resolve the path
+  const normalized = path.normalize(userPath);
+  const resolved = path.resolve(allowedRoot, normalized);
+
+  // Ensure resolved path is within allowed root
+  if (!resolved.startsWith(path.resolve(allowedRoot))) {
+    throw new SecurityError('PATH_TRAVERSAL', 'Path traversal attempt detected');
+  }
+
+  // Block access to sensitive files
+  const BLOCKED_PATTERNS = [
+    /\.env$/i,
+    /\.git\/config$/i,
+    /credentials/i,
+    /secrets?\./i,
+    /\.pem$/i,
+    /\.key$/i,
+    /id_rsa/i
+  ];
+
+  if (BLOCKED_PATTERNS.some(pattern => pattern.test(resolved))) {
+    throw new SecurityError('SENSITIVE_FILE', 'Access to sensitive file blocked');
+  }
+
+  return resolved;
+}
+```
+
+### WASM Security Constraints
+
+| Constraint | Value | Rationale |
+|------------|-------|-----------|
+| Memory Limit | 1GB max | Handle large codebases |
+| CPU Time Limit | 300 seconds for analysis | Allow full repo analysis |
+| No Network Access | Enforced by WASM sandbox | Prevent code exfiltration |
+| No Shell Execution | No child_process in WASM | Prevent command injection |
+| Read-Only Mode | Index building only, no writes | Prevent code modification |
+
+### Code Injection Prevention
+
+```typescript
+// NEVER execute analyzed code
+// NEVER use eval() on code patterns
+// NEVER pass user input to shell
+
+// BAD - vulnerable to injection
+const result = eval(userCodeSnippet);
+exec(`git log ${userInput}`);
+
+// GOOD - safe analysis
+const ast = parser.parse(userCodeSnippet); // Parse only, no execution
+const gitLog = await git.log({ maxCount: 100 }); // Use library, not shell
+```
+
+### Identified Security Risks
+
+| Risk ID | Severity | Description | Mitigation |
+|---------|----------|-------------|------------|
+| CODE-SEC-001 | **HIGH** | Path traversal accessing sensitive files | Path validation, allowlist approach |
+| CODE-SEC-002 | **HIGH** | Secrets exposed in code search results | Secret pattern detection and masking |
+| CODE-SEC-003 | **MEDIUM** | DoS via pathological code patterns | Timeout limits, parser safeguards |
+| CODE-SEC-004 | **MEDIUM** | IP theft via code similarity search | Access controls, audit logging |
+| CODE-SEC-005 | **LOW** | Cache poisoning | Cache integrity verification |
+
+### Secret Detection and Masking
+
+```typescript
+// Automatically detect and mask secrets in search results
+const SECRET_PATTERNS = [
+  /(['"])(?:api[_-]?key|apikey|secret|password|token|auth)['"]\s*[:=]\s*['"][^'"]+['"]/gi,
+  /(?:sk|pk)[-_](?:live|test)[-_][a-zA-Z0-9]{24,}/g, // Stripe keys
+  /ghp_[a-zA-Z0-9]{36}/g, // GitHub PAT
+  /-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/g
+];
+
+function maskSecrets(codeSnippet: string): string {
+  let masked = codeSnippet;
+  for (const pattern of SECRET_PATTERNS) {
+    masked = masked.replace(pattern, '[REDACTED]');
+  }
+  return masked;
+}
+```
+
 ## Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
