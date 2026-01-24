@@ -22,7 +22,6 @@ import type {
   DrugInteraction,
   InteractionSeverity,
   ClinicalPathway,
-  PathwayStep,
   Logger,
 } from '../types.js';
 
