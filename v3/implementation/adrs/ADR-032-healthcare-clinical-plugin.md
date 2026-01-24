@@ -180,12 +180,148 @@ Navigate medical ontology hierarchies.
                     +--------+ +--------+ +--------+
 ```
 
-## Privacy & Compliance
+## Security Considerations
+
+### CRITICAL: HIPAA Compliance Requirements
+
+| Requirement | Implementation | Severity |
+|-------------|----------------|----------|
+| **PHI Protection** | All patient data processed exclusively in WASM sandbox | CRITICAL |
+| **Encryption at Rest** | AES-256 encryption for all stored embeddings and indexes | CRITICAL |
+| **Encryption in Transit** | TLS 1.3 minimum for any network operations | CRITICAL |
+| **Access Logging** | Immutable audit logs with tamper detection (HMAC) | CRITICAL |
+| **Minimum Necessary** | Role-based data filtering at query time | HIGH |
+
+### Input Validation (CRITICAL)
+
+All MCP tool inputs MUST be validated using Zod schemas:
+
+```typescript
+// healthcare/patient-similarity input validation
+const PatientSimilaritySchema = z.object({
+  patientFeatures: z.object({
+    diagnoses: z.array(z.string().regex(/^[A-Z]\d{2}(\.\d{1,2})?$/)).max(100), // ICD-10 format
+    labResults: z.record(z.string(), z.number()).optional(),
+    vitals: z.record(z.string(), z.number()).optional(),
+    medications: z.array(z.string().max(200)).max(50).optional()
+  }),
+  topK: z.number().int().min(1).max(100).default(5),
+  cohortFilter: z.string().max(500).optional()
+});
+
+// healthcare/drug-interactions input validation
+const DrugInteractionsSchema = z.object({
+  medications: z.array(z.string().max(200)).min(1).max(50),
+  conditions: z.array(z.string().max(200)).max(100).optional(),
+  severity: z.enum(['all', 'major', 'moderate', 'minor']).default('all')
+});
+
+// healthcare/literature-search input validation
+const LiteratureSearchSchema = z.object({
+  query: z.string().min(3).max(1000),
+  sources: z.array(z.enum(['pubmed', 'cochrane', 'uptodate', 'local'])).optional(),
+  dateRange: z.object({
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional()
+  }).optional(),
+  evidenceLevel: z.enum(['any', 'systematic-review', 'rct', 'cohort']).optional()
+});
+```
+
+### WASM Security Constraints
+
+| Constraint | Value | Rationale |
+|------------|-------|-----------|
+| Memory Limit | 512MB max | Prevent memory exhaustion DoS |
+| CPU Time Limit | 30 seconds per operation | Prevent infinite loops |
+| No Network Access | Enforced by WASM sandbox | PHI cannot leak via network |
+| No File System Access | Sandboxed virtual FS only | Prevent path traversal |
+| Stack Size | 1MB limit | Prevent stack overflow attacks |
+
+### Data Residency & Sovereignty
+
+- **On-Device Processing MANDATORY**: All PHI must be processed locally via WASM
+- **No Cloud Transmission**: Plugin MUST NOT transmit PHI to external services
+- **Geographic Restrictions**: Deployment configurations must specify allowed jurisdictions
+- **Data Localization**: Index and embedding storage must respect regional requirements
+
+### Authentication & Authorization
+
+```typescript
+// Required role-based access control
+const HealthcareRoles = {
+  PHYSICIAN: ['patient-similarity', 'drug-interactions', 'clinical-pathways', 'literature-search', 'ontology-navigate'],
+  NURSE: ['drug-interactions', 'ontology-navigate'],
+  PHARMACIST: ['drug-interactions', 'literature-search'],
+  RESEARCHER: ['literature-search', 'ontology-navigate'], // No patient data access
+  CODER: ['ontology-navigate'] // Billing codes only
+};
+
+// Claims-based authorization check
+async function authorizeHealthcareTool(userId: string, toolName: string): Promise<boolean> {
+  const claims = await getUserClaims(userId);
+  const requiredRole = getRequiredRole(toolName);
+  return claims.roles.some(role => HealthcareRoles[role]?.includes(toolName));
+}
+```
+
+### Audit Logging Requirements (HIPAA 164.312(b))
+
+```typescript
+interface HealthcareAuditLog {
+  timestamp: string;          // ISO 8601 with timezone
+  userId: string;             // Authenticated user ID
+  toolName: string;           // MCP tool invoked
+  action: 'query' | 'view' | 'export';
+  patientIdentifiers: string[]; // Hashed patient IDs accessed
+  queryHash: string;          // Hash of query for reproducibility
+  resultCount: number;        // Number of records returned
+  ipAddress: string;          // Client IP (hashed for privacy)
+  success: boolean;
+  errorCode?: string;
+}
+
+// Audit logs MUST be:
+// - Immutable (append-only storage)
+// - Tamper-evident (HMAC chain)
+// - Retained for 6 years minimum (HIPAA requirement)
+// - Encrypted at rest
+```
+
+### Identified Security Risks
+
+| Risk ID | Severity | Description | Mitigation |
+|---------|----------|-------------|------------|
+| HC-SEC-001 | **CRITICAL** | PHI leakage via model embeddings | Use differential privacy, no raw PHI in embeddings |
+| HC-SEC-002 | **HIGH** | Re-identification attacks on anonymized data | k-anonymity (k>=5) for all aggregate queries |
+| HC-SEC-003 | **HIGH** | SQL injection in FHIR queries | Parameterized queries only, no string concatenation |
+| HC-SEC-004 | **MEDIUM** | Timing attacks revealing patient existence | Constant-time operations for all queries |
+| HC-SEC-005 | **MEDIUM** | Model inversion attacks | Rate limiting, query result caching |
+
+### Injection Prevention
+
+```typescript
+// MANDATORY: No shell commands in healthcare plugin
+// MANDATORY: No eval() or dynamic code execution
+// MANDATORY: Parameterized queries only
+
+// BAD - vulnerable to injection
+const unsafeQuery = `SELECT * FROM patients WHERE icd10 = '${userInput}'`;
+
+// GOOD - parameterized
+const safeQuery = {
+  text: 'SELECT * FROM patients WHERE icd10 = $1',
+  values: [validateICD10(userInput)]
+};
+```
+
+### Privacy & Compliance
 
 - **On-Device Processing**: All WASM processing happens locally, no PHI leaves the system
 - **Differential Privacy**: Optional noise injection for aggregate queries
 - **Audit Logging**: Complete audit trail for HIPAA compliance
 - **Role-Based Access**: Integrates with healthcare identity providers
+- **BAA Requirements**: Business Associate Agreements required for any third-party components
 
 ## Performance Targets
 
