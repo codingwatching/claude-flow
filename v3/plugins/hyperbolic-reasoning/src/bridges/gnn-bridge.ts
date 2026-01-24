@@ -162,7 +162,8 @@ export class GnnBridge {
     this._status = 'loading';
 
     try {
-      const wasmModule = await import('@ruvector/gnn-wasm').catch(() => null);
+      // Dynamic import - module may not be installed
+      const wasmModule = await import(/* webpackIgnore: true */ '@ruvector/gnn-wasm' as string).catch(() => null);
 
       if (wasmModule) {
         this._module = wasmModule as unknown as GnnWasmModule;
