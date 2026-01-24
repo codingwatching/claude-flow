@@ -764,6 +764,139 @@ const exportCommand: Command = {
   },
 };
 
+// List subcommand - List available pre-trained models
+const listCommand: Command = {
+  name: 'list',
+  description: 'List available pre-trained models from the official registry',
+  options: [
+    { name: 'category', short: 'c', type: 'string', description: 'Filter by category (security, quality, performance, etc.)' },
+    { name: 'format', short: 'f', type: 'string', description: 'Output format: table, json, simple', default: 'table' },
+    { name: 'cid', type: 'string', description: 'Custom registry CID (default: official registry)' },
+  ],
+  examples: [
+    { command: 'claude-flow neural list', description: 'List all available models' },
+    { command: 'claude-flow neural list -c security', description: 'List only security models' },
+    { command: 'claude-flow neural list -f json', description: 'Output as JSON' },
+  ],
+  action: async (ctx: CommandContext): Promise<CommandResult> => {
+    const category = ctx.flags.category as string | undefined;
+    const format = ctx.flags.format as string || 'table';
+    const customCid = ctx.flags.cid as string;
+
+    // Official model registry CID
+    const registryCid = customCid || 'QmNr1yYMKi7YBaL8JSztQyuB5ZUaTdRMLxJC1pBpGbjsTc';
+
+    output.writeln();
+    output.writeln(output.bold('Pre-trained Model Registry'));
+    output.writeln(output.dim('─'.repeat(60)));
+
+    const spinner = output.createSpinner({ text: 'Fetching model registry...', spinner: 'dots' });
+    spinner.start();
+
+    try {
+      const gateways = [
+        'https://gateway.pinata.cloud',
+        'https://ipfs.io',
+        'https://dweb.link',
+      ];
+
+      type ModelType = {
+        id: string;
+        name: string;
+        category: string;
+        description: string;
+        patterns: Array<{ id: string; description: string; confidence: number }>;
+        metadata: { accuracy: number; totalUsage: number; trainedOn: string };
+      };
+
+      let registry: { models: ModelType[]; metadata: { totalPatterns: number; averageAccuracy: number } } | null = null;
+
+      for (const gateway of gateways) {
+        try {
+          const response = await fetch(`${gateway}/ipfs/${registryCid}`, {
+            signal: AbortSignal.timeout(15000),
+            headers: { 'Accept': 'application/json' },
+          });
+
+          if (response.ok) {
+            registry = await response.json() as typeof registry;
+            break;
+          }
+        } catch {
+          continue;
+        }
+      }
+
+      if (!registry || !registry.models) {
+        spinner.fail('Could not fetch model registry');
+        return { success: false, exitCode: 1 };
+      }
+
+      spinner.succeed(`Found ${registry.models.length} models`);
+
+      // Filter by category if specified
+      let models = registry.models;
+      if (category) {
+        models = models.filter(m =>
+          m.category === category ||
+          m.id.includes(category) ||
+          m.name.toLowerCase().includes(category.toLowerCase())
+        );
+      }
+
+      if (models.length === 0) {
+        output.writeln(output.warning(`No models found for category: ${category}`));
+        output.writeln(output.dim('Available categories: security, quality, performance, testing, api, debugging, refactoring, documentation'));
+        return { success: false, exitCode: 1 };
+      }
+
+      output.writeln();
+
+      if (format === 'json') {
+        output.writeln(JSON.stringify(models, null, 2));
+      } else if (format === 'simple') {
+        for (const model of models) {
+          output.writeln(`${model.id} (${model.category}) - ${model.patterns.length} patterns, ${(model.metadata.accuracy * 100).toFixed(0)}% accuracy`);
+        }
+      } else {
+        // Table format
+        output.table({
+          columns: [
+            { key: 'id', header: 'Model ID', width: 35 },
+            { key: 'category', header: 'Category', width: 14 },
+            { key: 'patterns', header: 'Patterns', width: 10 },
+            { key: 'accuracy', header: 'Accuracy', width: 10 },
+            { key: 'usage', header: 'Usage', width: 10 },
+          ],
+          data: models.map(m => ({
+            id: m.id,
+            category: m.category,
+            patterns: String(m.patterns.length),
+            accuracy: `${(m.metadata.accuracy * 100).toFixed(0)}%`,
+            usage: m.metadata.totalUsage.toLocaleString(),
+          })),
+        });
+
+        output.writeln();
+        output.writeln(output.dim('Registry CID: ' + registryCid));
+        output.writeln();
+        output.writeln(output.bold('Import Commands:'));
+        output.writeln(output.dim('  All models:      ') + `claude-flow neural import --cid ${registryCid}`);
+        if (category) {
+          output.writeln(output.dim(`  ${category} only: `) + `claude-flow neural import --cid ${registryCid} --category ${category}`);
+        } else {
+          output.writeln(output.dim('  By category:     ') + `claude-flow neural import --cid ${registryCid} --category <category>`);
+        }
+      }
+
+      return { success: true };
+    } catch (error) {
+      spinner.fail(`Failed to list models: ${error instanceof Error ? error.message : String(error)}`);
+      return { success: false, exitCode: 1 };
+    }
+  },
+};
+
 // Import subcommand - Securely import models from IPFS
 const importCommand: Command = {
   name: 'import',
