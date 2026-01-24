@@ -56,6 +56,13 @@ async function fetchNpmStats(packageName: string): Promise<{ downloads: number; 
  */
 export const LIVE_REGISTRY_CID = 'bafkreiahw4ufxwycbwwswt7rgbx6hkgnvg3rophhocatgec4bu5e7tzk2a';
 
+/**
+ * Pre-trained Model Registry CID - Updated 2026-01-24
+ * Contains 8 pre-trained learning pattern models with 40 patterns
+ * Trained on 110,600+ examples with 90.5% average accuracy
+ */
+export const MODEL_REGISTRY_CID = 'QmNr1yYMKi7YBaL8JSztQyuB5ZUaTdRMLxJC1pBpGbjsTc';
+
 export const DEFAULT_PLUGIN_STORE_CONFIG: PluginStoreConfig = {
   registries: [
     {
