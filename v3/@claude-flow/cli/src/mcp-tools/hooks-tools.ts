@@ -676,7 +676,7 @@ export const hooksRoute: MCPTool = {
     let confidence: number;
     let matchedPattern = '';
 
-    if (semanticResult.length > 0 && semanticResult[0].score > 0.6) {
+    if (semanticResult.length > 0 && semanticResult[0].score > 0.5) {
       const topMatch = semanticResult[0];
       agents = (topMatch.metadata.agents as string[]) || ['coder', 'researcher'];
       confidence = topMatch.score;
