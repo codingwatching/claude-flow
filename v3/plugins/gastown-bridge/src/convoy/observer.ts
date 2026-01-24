@@ -1108,4 +1108,54 @@ export function createConvoyObserver(
   return new ConvoyObserver(config, logger);
 }
 
+/**
+ * Create a lazy-initialized convoy observer.
+ * The observer is only created when first accessed (via watch() or checkCompletion()).
+ * Useful for deferring initialization until convoy monitoring is actually needed.
+ *
+ * @example
+ * ```typescript
+ * const lazyObserver = createLazyConvoyObserver(config);
+ *
+ * // Observer is NOT created yet
+ * console.log(lazyObserver.getWatchCount()); // 0
+ *
+ * // First watch triggers observer creation
+ * const observer = await lazyObserver.watch();
+ * const handle = observer.watch(convoyId, callback);
+ *
+ * // When done, unwatch to potentially dispose
+ * await lazyObserver.unwatch();
+ * ```
+ */
+export function createLazyConvoyObserver(
+  config: ConvoyObserverConfig,
+  logger?: ObserverLogger
+): LazyObserver<ConvoyObserver> {
+  return new LazyObserver<ConvoyObserver>(
+    () => new ConvoyObserver(config, logger),
+    {
+      name: 'convoy-observer',
+      cleanup: (observer) => {
+        observer.dispose();
+      },
+    }
+  );
+}
+
+/**
+ * Get lazy observer statistics
+ */
+export function getLazyObserverStats(
+  lazyObserver: LazyObserver<ConvoyObserver>
+): {
+  isActive: boolean;
+  watchCount: number;
+} {
+  return {
+    isActive: lazyObserver.isActive(),
+    watchCount: lazyObserver.getWatchCount(),
+  };
+}
+
 export default ConvoyObserver;
