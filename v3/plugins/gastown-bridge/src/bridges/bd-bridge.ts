@@ -422,7 +422,7 @@ export class BdBridge {
    * @param args - Command arguments (validated and sanitized)
    * @returns Command output
    */
-  async execBd(args: string[]): Promise<BdResult<string>> {
+  async execBd(args: string[], skipCache = false): Promise<BdResult<string>> {
     const startTime = Date.now();
 
     // Validate all arguments
@@ -439,72 +439,98 @@ export class BdBridge {
       );
     }
 
-    try {
-      this.logger.debug('Executing bd command', {
-        command: 'bd',
-        args: validatedArgs,
-      });
+    // Check cache for cacheable commands
+    const cacheKey = hashArgs(validatedArgs);
+    const isCacheable = !skipCache && subcommand && BdBridge.CACHEABLE_COMMANDS.has(subcommand);
+    const isStatic = subcommand && BdBridge.STATIC_COMMANDS.has(subcommand);
 
-      const { stdout, stderr } = await execFileAsync(
-        this.config.bdPath,
-        validatedArgs,
-        {
-          cwd: this.config.cwd,
-          env: this.config.env,
-          timeout: this.config.timeout,
-          maxBuffer: this.config.maxBuffer,
-          shell: false, // CRITICAL: Never use shell
-          windowsHide: true,
-        }
-      );
-
-      const durationMs = Date.now() - startTime;
-
-      if (stderr && stderr.trim()) {
-        this.logger.warn('bd stderr output', { stderr });
+    if (isCacheable) {
+      const cached = staticCache.get(cacheKey) as BdResult<string> | undefined;
+      if (cached) {
+        this.logger.debug('Cache hit for bd command', { command: subcommand });
+        return {
+          ...cached,
+          durationMs: 0, // Cached result
+        };
       }
-
-      return {
-        success: true,
-        data: stdout.trim(),
-        command: 'bd',
-        args: validatedArgs,
-        durationMs,
-      };
-    } catch (error: unknown) {
-      const durationMs = Date.now() - startTime;
-      const err = error as NodeJS.ErrnoException & {
-        killed?: boolean;
-        stdout?: string;
-        stderr?: string;
-      };
-
-      if (err.killed) {
-        throw new BdBridgeError(
-          'Command execution timed out',
-          'TIMEOUT',
-          'bd',
-          validatedArgs
-        );
-      }
-
-      if (err.code === 'ENOENT') {
-        throw new BdBridgeError(
-          `bd executable not found at: ${this.config.bdPath}`,
-          'COMMAND_NOT_FOUND',
-          'bd',
-          validatedArgs
-        );
-      }
-
-      return {
-        success: false,
-        error: err.stderr || err.message,
-        command: 'bd',
-        args: validatedArgs,
-        durationMs,
-      };
     }
+
+    // Use deduplication for concurrent identical calls
+    return execDedup.dedupe(cacheKey, async () => {
+      try {
+        this.logger.debug('Executing bd command', {
+          command: 'bd',
+          args: validatedArgs,
+        });
+
+        const { stdout, stderr } = await execFileAsync(
+          this.config.bdPath,
+          validatedArgs,
+          {
+            cwd: this.config.cwd,
+            env: this.config.env,
+            timeout: this.config.timeout,
+            maxBuffer: this.config.maxBuffer,
+            shell: false, // CRITICAL: Never use shell
+            windowsHide: true,
+          }
+        );
+
+        const durationMs = Date.now() - startTime;
+
+        if (stderr && stderr.trim()) {
+          this.logger.warn('bd stderr output', { stderr });
+        }
+
+        const result: BdResult<string> = {
+          success: true,
+          data: stdout.trim(),
+          command: 'bd',
+          args: validatedArgs,
+          durationMs,
+        };
+
+        // Cache successful results
+        if (isCacheable && result.success) {
+          staticCache.set(cacheKey, result);
+        }
+
+        return result;
+      } catch (error: unknown) {
+        const durationMs = Date.now() - startTime;
+        const err = error as NodeJS.ErrnoException & {
+          killed?: boolean;
+          stdout?: string;
+          stderr?: string;
+        };
+
+        if (err.killed) {
+          throw new BdBridgeError(
+            'Command execution timed out',
+            'TIMEOUT',
+            'bd',
+            validatedArgs
+          );
+        }
+
+        if (err.code === 'ENOENT') {
+          throw new BdBridgeError(
+            `bd executable not found at: ${this.config.bdPath}`,
+            'COMMAND_NOT_FOUND',
+            'bd',
+            validatedArgs
+          );
+        }
+
+        return {
+          success: false,
+          error: err.stderr || err.message,
+          command: 'bd',
+          args: validatedArgs,
+          durationMs,
+        };
+      }
+    });
   }
 
   /**
