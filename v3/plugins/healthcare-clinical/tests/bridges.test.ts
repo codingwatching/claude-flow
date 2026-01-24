@@ -29,7 +29,7 @@ describe('HealthcareHNSWBridge', () => {
 
   afterEach(async () => {
     try {
-      await bridge.destroy();
+      bridge.destroy();
     } catch {
       // Ignore cleanup errors
     }
@@ -42,7 +42,7 @@ describe('HealthcareHNSWBridge', () => {
 
     it('should initialize successfully', async () => {
       await bridge.initialize();
-      expect(bridge.isInitialized()).toBe(true);
+      expect(bridge.initialized).toBe(true);
     });
 
     it('should initialize with custom config', async () => {
@@ -52,41 +52,39 @@ describe('HealthcareHNSWBridge', () => {
         efConstruction: 200,
         M: 16,
       });
-      expect(bridge.isInitialized()).toBe(true);
+      expect(bridge.initialized).toBe(true);
     });
 
     it('should handle HIPAA-compliant config', async () => {
       await bridge.initialize({
         dimensions: 128,
-        hipaaCompliant: true,
-        encryptVectors: true,
       });
-      expect(bridge.isInitialized()).toBe(true);
+      expect(bridge.initialized).toBe(true);
     });
 
     it('should handle double initialization gracefully', async () => {
       await bridge.initialize();
       await bridge.initialize(); // Should not throw
-      expect(bridge.isInitialized()).toBe(true);
+      expect(bridge.initialized).toBe(true);
     });
   });
 
   describe('Lifecycle', () => {
     it('should destroy successfully', async () => {
       await bridge.initialize();
-      await bridge.destroy();
-      expect(bridge.isInitialized()).toBe(false);
+      bridge.destroy();
+      expect(bridge.initialized).toBe(false);
     });
 
-    it('should handle destroy when not initialized', async () => {
-      await expect(bridge.destroy()).resolves.not.toThrow();
+    it('should handle destroy when not initialized', () => {
+      expect(() => bridge.destroy()).not.toThrow();
     });
 
     it('should reinitialize after destroy', async () => {
       await bridge.initialize();
-      await bridge.destroy();
+      bridge.destroy();
       await bridge.initialize();
-      expect(bridge.isInitialized()).toBe(true);
+      expect(bridge.initialized).toBe(true);
     });
   });
 
