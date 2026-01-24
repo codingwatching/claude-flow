@@ -1138,11 +1138,13 @@ export async function getWasmVersions(): Promise<{
 
 /**
  * Reset the WASM module cache.
+ * Clears lazy loader cache and forces reload on next access.
  * Useful for testing or when modules need to be reloaded.
  */
 export function resetWasmCache(): void {
-  formulaWasmModule = null;
-  gnnWasmModule = null;
+  // Clear the lazy loaders' internal cache
+  lazyFormulaWasm.clearCache();
+  lazyGnnWasm.clearCache();
   wasmAvailable = null;
 }
 
