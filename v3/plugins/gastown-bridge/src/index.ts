@@ -1042,6 +1042,9 @@ export * from './bridges/index.js';
 // Re-export convoy module
 export * from './convoy/index.js';
 
+// Re-export GUPP module (Gastown Universal Propulsion Principle)
+export * from './gupp/index.js';
+
 // Re-export WASM loader
 export {
   // Availability check
