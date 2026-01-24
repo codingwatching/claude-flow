@@ -470,7 +470,7 @@ export class GNNBridge implements IGNNBridge {
   /**
    * Detect language from file extension
    */
-  private detectLanguage(filePath: string): string | undefined {
+  private detectLanguage(filePath: string): DependencyNode['language'] {
     const ext = filePath.split('.').pop()?.toLowerCase();
     const langMap: Record<string, string> = {
       ts: 'typescript',
