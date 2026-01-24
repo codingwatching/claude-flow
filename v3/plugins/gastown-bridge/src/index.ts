@@ -1136,6 +1136,60 @@ export class GasTownBridgePlugin extends EventEmitter implements IPlugin {
     });
   }
 
+  /**
+   * Create a stub AgentDB service for SyncBridge initialization.
+   * This stub stores data in-memory and should be replaced with
+   * the real AgentDB service from the plugin context.
+   */
+  private createStubAgentDB(): IAgentDBService {
+    const storage = new Map<string, Map<string, AgentDBEntry>>();
+
+    return {
+      async store(key: string, value: unknown, namespace?: string, metadata?: Record<string, unknown>): Promise<void> {
+        const ns = namespace ?? 'default';
+        if (!storage.has(ns)) storage.set(ns, new Map());
+        storage.get(ns)!.set(key, {
+          key,
+          value,
+          namespace: ns,
+          metadata,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          version: 1,
+        });
+      },
+      async retrieve(key: string, namespace?: string): Promise<AgentDBEntry | null> {
+        const ns = namespace ?? 'default';
+        return storage.get(ns)?.get(key) ?? null;
+      },
+      async search(_query: string, namespace?: string, limit?: number): Promise<AgentDBEntry[]> {
+        const ns = namespace ?? 'default';
+        const entries = storage.get(ns);
+        if (!entries) return [];
+        return Array.from(entries.values()).slice(0, limit ?? 100);
+      },
+      async list(namespace?: string, limit?: number, offset?: number): Promise<AgentDBEntry[]> {
+        const ns = namespace ?? 'default';
+        const entries = storage.get(ns);
+        if (!entries) return [];
+        return Array.from(entries.values()).slice(offset ?? 0, (offset ?? 0) + (limit ?? 100));
+      },
+      async delete(key: string, namespace?: string): Promise<void> {
+        const ns = namespace ?? 'default';
+        storage.get(ns)?.delete(key);
+      },
+      async getNamespaceStats(namespace: string): Promise<{ count: number; lastUpdated?: string }> {
+        const entries = storage.get(namespace);
+        if (!entries) return { count: 0 };
+        const values = Array.from(entries.values());
+        const lastUpdated = values.length > 0
+          ? values.reduce((latest, e) => (e.updatedAt && e.updatedAt > (latest ?? '')) ? e.updatedAt : latest, undefined as string | undefined)
+          : undefined;
+        return { count: values.length, lastUpdated };
+      },
+    };
+  }
+
   // ============================================================================
   // Private Methods - MCP Tool Conversion
   // ============================================================================
