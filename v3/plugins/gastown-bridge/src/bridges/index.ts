@@ -22,8 +22,8 @@ export {
   type GtLogger,
   type GtErrorCode,
   // Schemas
-  SafeStringSchema,
-  IdentifierSchema,
+  SafeStringSchema as GtSafeStringSchema,
+  IdentifierSchema as GtIdentifierSchema,
   GasPriceSchema,
   GasLimitSchema,
   TxHashSchema,
@@ -37,9 +37,9 @@ export {
   BdBridge,
   createBdBridge,
   BdBridgeError,
-  // Types
-  type Bead,
-  type BeadType,
+  // Types - renamed to avoid conflicts with existing types
+  type Bead as CliBead,
+  type BeadType as CliBeadType,
   type BdBridgeConfig,
   type BeadQuery,
   type CreateBeadParams,
@@ -47,10 +47,10 @@ export {
   type BdStreamResult,
   type BdLogger,
   type BdErrorCode,
-  // Schemas
-  BeadSchema,
+  // Schemas - renamed to avoid conflicts
+  BeadSchema as CliBeadSchema,
   BeadIdSchema,
-  BeadTypeSchema,
+  BeadTypeSchema as CliBeadTypeSchema,
   BdArgumentSchema,
 } from './bd-bridge.js';
 
@@ -59,21 +59,21 @@ export {
   SyncBridge,
   createSyncBridge,
   SyncBridgeError,
-  // Types
+  // Types - renamed to avoid conflicts
   type ConflictStrategy,
-  type SyncDirection,
+  type SyncDirection as CliSyncDirection,
   type SyncStatus,
   type AgentDBEntry,
   type SyncBridgeConfig,
-  type SyncResult,
+  type SyncResult as CliSyncResult,
   type SyncConflict,
   type SyncState,
   type IAgentDBService,
   type SyncLogger,
   type SyncErrorCode,
-  // Schemas
+  // Schemas - renamed to avoid conflicts
   ConflictStrategySchema,
-  SyncDirectionSchema,
+  SyncDirectionSchema as CliSyncDirectionSchema,
   SyncStatusSchema,
   AgentDBEntrySchema,
 } from './sync-bridge.js';
