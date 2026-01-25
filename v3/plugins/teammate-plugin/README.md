@@ -60,7 +60,7 @@ pnpm add @claude-flow/teammate-plugin
 
 ```bash
 # Install via claude-flow plugin manager
-npx @claude-flow/cli@latest plugins install teammate-plugin
+npx @claude-flow/cli@latest plugins install --name @claude-flow/teammate-plugin
 
 # Or add to your claude-flow.config.json
 npx @claude-flow/cli@latest config set plugins.teammate-plugin.enabled true
