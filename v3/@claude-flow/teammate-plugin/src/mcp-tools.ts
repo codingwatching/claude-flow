@@ -19,15 +19,10 @@ import type {
   MessageType,
 } from './types.js';
 
-// ============================================================================
-// Security Constants
-// ============================================================================
+import { MCP_PARAM_LIMITS } from './types.js';
 
-/** Maximum parameter string length */
-const MAX_PARAM_LENGTH = 10000;
-
-/** Maximum array items in parameters */
-const MAX_ARRAY_ITEMS = 100;
+// Use centralized security constants from types.ts
+const { MAX_PARAM_LENGTH, MAX_ARRAY_ITEMS } = MCP_PARAM_LIMITS;
 
 // ============================================================================
 // Input Validation
