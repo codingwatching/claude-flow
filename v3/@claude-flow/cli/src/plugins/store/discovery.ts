@@ -54,7 +54,7 @@ async function fetchNpmStats(packageName: string): Promise<{ downloads: number; 
  * Live IPFS Registry CID - Updated 2026-01-24
  * This is the current pinned registry on Pinata
  */
-export const LIVE_REGISTRY_CID = 'bafkreiahw4ufxwycbwwswt7rgbx6hkgnvg3rophhocatgec4bu5e7tzk2a';
+export const LIVE_REGISTRY_CID = 'QmXbfEAaR7D2Ujm4GAkbwcGZQMHqAMpwDoje4583uNP834';
 
 /**
  * Pre-trained Model Registry CID - Updated 2026-01-24
