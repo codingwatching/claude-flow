@@ -49,6 +49,12 @@ export const HEALTH_CHECK_DEFAULTS = {
   HEALTHY_THRESHOLD: 2,
 } as const;
 
+// MCP tool parameter limits
+export const MCP_PARAM_LIMITS = {
+  MAX_PARAM_LENGTH: 10000,
+  MAX_ARRAY_ITEMS: 100,
+} as const;
+
 export interface VersionInfo {
   claudeCode: string | null;
   plugin: string;
