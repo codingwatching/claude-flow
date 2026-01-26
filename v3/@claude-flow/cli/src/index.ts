@@ -341,6 +341,7 @@ export class CLI {
     this.output.writeln(this.output.dim('Run "claude-flow <command> --help" for command help'));
     this.output.writeln();
     this.output.writeln(this.output.dim('Created with ❤️ by ruv.io'));
+    this.output.writeln(this.output.dim('https://github.com/ruvnet/claude-flow'));
     this.output.writeln();
   }
 
